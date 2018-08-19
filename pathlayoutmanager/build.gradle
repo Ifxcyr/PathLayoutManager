@@ -1,0 +1,115 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.github.dcendents.android-maven'
+
+def siteUrl = 'https://github.com/wuyr/PathLayoutManager' //需要修改
+def gitUrl = 'https://github.com/Ifxcyr/PathLayoutManager.git' //需要修改
+
+version = "1.0.0"
+group = "com.wuyr"
+
+android {
+    compileSdkVersion 27
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+dependencies {
+    implementation 'com.android.support:recyclerview-v7:27.1.1'
+    implementation 'com.android.support:support-annotations:27.1.1'
+}
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+    pkg {
+        repo = 'PathLayoutManager' //需要修改
+        name = 'PathLayoutManager' //需要修改
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        licenses = ['Apache-2.0']
+        userOrg = 'wuyr'
+        publish = true
+
+        version {
+            name = '1.0.0'
+            desc = 'RecyclerView的LayoutManager，轻松实现各种炫酷、特殊效果，再也不怕产品经理为难！ ' //需要修改
+            released = new Date()
+            vcsTag = '1.0.0'
+            attributes = ['gradle-plugin': 'com.use.less:com.use.less.gradle:gradle-useless-plugin']
+        }
+    }
+    configurations = ['archives']
+}
+
+install {
+    repositories.mavenInstaller {
+
+        pom {
+            project {
+                packaging 'aar'
+
+                name '陈小缘'
+                description 'RecyclerView的LayoutManager，轻松实现各种炫酷、特殊效果，再也不怕产品经理为难！ ' //需要修改
+                url siteUrl
+
+                licenses {
+                    license {
+                        name 'Apache-2.0'
+                        url 'https://raw.githubusercontent.com/Ifxcyr/PathLayoutManager/master/LICENSE' //需要修改
+                    }
+                }
+                developers {
+                    developer {
+                        id 'ifxcyr'
+                        name '陈小缘'
+                        email 'ifxcyr@gmail.com'
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+                }
+            }
+        }
+    }
+}
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+task javadoc(type: Javadoc) {
+    failOnError false
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+javadoc {
+    options {
+        encoding "UTF-8"
+        charSet 'UTF-8'
+        author true
+        version true
+        links "http://docs.oracle.com/javase/8/docs/api"
+    }
+}
