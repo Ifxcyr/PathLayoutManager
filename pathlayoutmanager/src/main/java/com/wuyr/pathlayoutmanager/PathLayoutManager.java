@@ -88,7 +88,7 @@ public class PathLayoutManager extends RecyclerView.LayoutManager implements Rec
      * @param orientation 滑动方向
      */
     public PathLayoutManager(Path path, int itemOffset, @RecyclerView.Orientation int orientation) {
-        mCacheCount = 10;
+        mCacheCount = 2;
         mAutoSelectFraction = .5F;
         mFixingAnimationDuration = 250;
         mOrientation = orientation;
@@ -147,6 +147,7 @@ public class PathLayoutManager extends RecyclerView.LayoutManager implements Rec
                 }
             }
 //            recyclerView.setItemAnimator(null);
+            mRecycler.setViewCacheSize(mCacheCount);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -162,7 +163,7 @@ public class PathLayoutManager extends RecyclerView.LayoutManager implements Rec
             return;
         }
         onLayout(recycler, needLayoutItems);
-        recycleChildren(recycler, state, needLayoutItems);
+        recycleChildren(recycler);
     }
 
     /**
@@ -386,71 +387,12 @@ public class PathLayoutManager extends RecyclerView.LayoutManager implements Rec
     /**
      * 回收屏幕外需回收的Item
      */
-    private void recycleChildren(RecyclerView.Recycler recycler, RecyclerView.State state, List<PosTan> needLayoutDataList) {
-        int itemCount = getItemCount();
-        int firstIndex = needLayoutDataList.get(0).index;
-        int lastIndex = needLayoutDataList.get(needLayoutDataList.size() - 1).index;
-        int forwardStartIndex, forwardEndIndex;
-        int backwardStartIndex, backwardEndIndex;
-        boolean needRecyclerForward = false, needRecyclerBackward = false;
-
-        //要保留设置的缓存个数
-        forwardEndIndex = firstIndex - mCacheCount / 2;
-        backwardStartIndex = lastIndex + mCacheCount / 2;
-        forwardStartIndex = forwardEndIndex - mCacheCount;
-        backwardEndIndex = backwardStartIndex + mCacheCount;
-
-        if (isSatisfiedLoopScroll()) {
-            if (itemCount > mCacheCount + mItemCountInScreen) {
-                //因为是循环滚动(没有边界)所以总是需要回收
-                needRecyclerForward = true;
-                needRecyclerBackward = true;
-                for (int i = forwardStartIndex; i < backwardEndIndex; i++) {
-                    //检测两边回收的是否有碰撞，如有，将两边的端点各后退一步
-                    for (int j = backwardStartIndex; j < backwardEndIndex; j++) {
-                        if (fixOverflowIndex(j, itemCount) == fixOverflowIndex(i, itemCount)) {
-                            forwardStartIndex++;
-                            backwardEndIndex--;
-                        }
-                    }
-                }
-            }
-        } else {
-            if (forwardEndIndex > 0) {
-                if (forwardStartIndex < 0) {
-                    forwardStartIndex = 0;
-                }
-                needRecyclerForward = true;
-            }
-            if (backwardStartIndex < itemCount - 1) {
-                if (backwardEndIndex >= itemCount) {
-                    backwardEndIndex = itemCount - 1;
-                }
-                needRecyclerBackward = true;
-            }
-        }
-        if (needRecyclerForward) {
-            recycleChildren(recycler, state, forwardStartIndex, forwardEndIndex);
-        }
-        if (needRecyclerBackward) {
-            recycleChildren(recycler, state, backwardStartIndex, backwardEndIndex);
-        }
-    }
-
-    /**
-     * 回收屏幕外需回收的Item
-     */
-    private void recycleChildren(RecyclerView.Recycler recycler, RecyclerView.State state, int startIndex, int endIndex) {
-        int temp;
-        for (int i = startIndex; i <= endIndex; i++) {
-            temp = isSatisfiedLoopScroll() ? fixOverflowIndex(i, getItemCount()) : i;
-            if (temp >= state.getItemCount()) {
-                break;
-            }
-            final View view = recycler.getViewForPosition(temp);
-            if (view != null) {
-                recycler.recycleView(view);
-            }
+    private void recycleChildren(RecyclerView.Recycler recycler) {
+        List<RecyclerView.ViewHolder> scrapList = recycler.getScrapList();
+        for (int i = 0; i < scrapList.size(); i++) {
+            RecyclerView.ViewHolder holder = scrapList.get(i);
+            removeView(holder.itemView);
+            recycler.recycleView(holder.itemView);
         }
     }
 
@@ -724,6 +666,9 @@ public class PathLayoutManager extends RecyclerView.LayoutManager implements Rec
      * 设置缓存个数
      */
     public void setCacheCount(int count) {
+        if (mRecycler != null) {
+            mRecycler.setViewCacheSize(count);
+        }
         mCacheCount = count;
     }
 
@@ -862,9 +807,17 @@ public class PathLayoutManager extends RecyclerView.LayoutManager implements Rec
             }
         });
         mAnimator.addListener(new AnimatorListenerAdapter() {
+
+            boolean isCanceled;
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                isCanceled = true;
+            }
+
             @Override
             public void onAnimationEnd(Animator animation) {
-                if (isAutoSelect) {
+                if (!isCanceled && isAutoSelect) {
                     if (mItemSelectedListener != null) {
                         mItemSelectedListener.onSelected(position);
                     }
@@ -1020,6 +973,7 @@ public class PathLayoutManager extends RecyclerView.LayoutManager implements Rec
 
     @Override
     public void onDetachedFromWindow(RecyclerView view, RecyclerView.Recycler recycler) {
+        removeAndRecycleAllViews(recycler);
         if (mKeyframes != null) {
             mKeyframes.release();
             mKeyframes = null;
