@@ -130,6 +130,30 @@ public class PathLayoutManager extends RecyclerView.LayoutManager implements Rec
         relayoutChildren(recycler, state);
     }
 
+    @Override
+    public void onMeasure(RecyclerView.Recycler recycler, RecyclerView.State state, int widthSpec, int heightSpec) {
+        if (mKeyframes != null) {
+            int widthMode = View.MeasureSpec.getMode(widthSpec);
+            int heightMode = View.MeasureSpec.getMode(heightSpec);
+            //如果RecyclerView宽度设置了wrap_content
+            //那就把宽度设置为Path的宽度
+            if (widthMode == View.MeasureSpec.AT_MOST) {
+                widthSpec = View.MeasureSpec.makeMeasureSpec(mKeyframes.getMaxX(), View.MeasureSpec.EXACTLY);
+            }
+            //如果RecyclerView高度设置了wrap_content
+            //那就把高度设置为Path的高度
+            if (heightMode == View.MeasureSpec.AT_MOST) {
+                heightSpec = View.MeasureSpec.makeMeasureSpec(mKeyframes.getMaxY(), View.MeasureSpec.EXACTLY);
+            }
+        }
+        super.onMeasure(recycler, state, widthSpec, heightSpec);
+    }
+
+    @Override
+    public boolean isAutoMeasureEnabled() {
+        return true;
+    }
+
     /**
      * 通过反射替换默认的Item动画 (解决在某些机型上的crash问题)
      */

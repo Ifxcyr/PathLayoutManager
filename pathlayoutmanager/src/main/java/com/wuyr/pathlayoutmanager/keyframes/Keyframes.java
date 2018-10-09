@@ -16,6 +16,8 @@ public class Keyframes {
     private float[] mY;
     private float[] mAngle;
     private PosTan mTemp;
+    private float mMaxX;
+    private float mMaxY;
 
     public Keyframes(Path path) {
         initPath(path);
@@ -41,6 +43,12 @@ public class Keyframes {
             for (int i = 0; i < numPoints; ++i) {
                 final float distance = (i * pathLength) / (numPoints - 1);
                 pathMeasure.getPosTan(distance, position, tangent);
+                if (position[0] > mMaxX) {
+                    mMaxX = position[0];
+                }
+                if (position[1] > mMaxY) {
+                    mMaxY = position[1];
+                }
                 x[i] = position[0];
                 y[i] = position[1];
                 angle[i] = fixAngle((float) (Math.atan2(tangent[1], tangent[0]) * 180F / Math.PI));
@@ -79,6 +87,14 @@ public class Keyframes {
             rotation %= angle;
         }
         return rotation;
+    }
+
+    public int getMaxX() {
+        return (int) mMaxX;
+    }
+
+    public int getMaxY() {
+        return (int) mMaxY;
     }
 
     public PosTan getValue(@FloatRange(from = 0F, to = 1F) float fraction) {
