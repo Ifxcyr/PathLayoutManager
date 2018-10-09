@@ -151,7 +151,7 @@ public class PathLayoutManager extends RecyclerView.LayoutManager implements Rec
 
     @Override
     public boolean isAutoMeasureEnabled() {
-        return true;
+        return false;
     }
 
     /**
