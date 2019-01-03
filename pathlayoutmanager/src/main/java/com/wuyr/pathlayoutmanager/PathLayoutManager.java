@@ -354,8 +354,9 @@ public class PathLayoutManager extends RecyclerView.LayoutManager implements Rec
         }
 
         int endIndex = mFirstVisibleItemPos + mItemCountInScreen;
-        if (endIndex > mState.getItemCount()) {
-            endIndex = mState.getItemCount();
+        int totalItemCount = mState == null ? getItemCount() : mState.getItemCount();
+        if (endIndex > totalItemCount) {
+            endIndex = totalItemCount;
         }
         float fraction;
         PosTan posTan;
@@ -793,7 +794,7 @@ public class PathLayoutManager extends RecyclerView.LayoutManager implements Rec
      * @param position 目标Item索引
      */
     public void smoothScrollToPosition(int position) {
-        if (position > -1 && position < getItemCount()) {
+        if (position > -1 && position < getItemCount() && mState != null) {
             checkKeyframes();
             startValueAnimator(position);
         }
