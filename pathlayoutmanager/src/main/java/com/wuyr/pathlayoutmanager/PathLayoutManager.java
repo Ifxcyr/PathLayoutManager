@@ -819,15 +819,13 @@ public class PathLayoutManager extends RecyclerView.LayoutManager implements Rec
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 float currentValue = (float) animation.getAnimatedValue();
-                if (mLastScrollOffset != 0) {
-                    float offset = currentValue - mLastScrollOffset;
-                    if (canScrollVertically()) {
-                        updateOffsetY(offset);
-                    } else {
-                        updateOffsetX(offset);
-                    }
-                    requestLayout();
+                float offset = currentValue - mLastScrollOffset;
+                if (canScrollVertically()) {
+                    updateOffsetY(offset);
+                } else {
+                    updateOffsetX(offset);
                 }
+                requestLayout();
                 mLastScrollOffset = currentValue;
             }
         });

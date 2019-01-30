@@ -5,7 +5,7 @@ apply plugin: 'com.github.dcendents.android-maven'
 def siteUrl = 'https://github.com/wuyr/PathLayoutManager' //需要修改
 def gitUrl = 'https://github.com/Ifxcyr/PathLayoutManager.git' //需要修改
 
-version = "1.0.2"
+version = "1.0.3"
 group = "com.wuyr"
 
 android {
@@ -13,8 +13,8 @@ android {
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion 27
-        versionCode 1
-        versionName "1.0"
+        versionCode 4
+        versionName "1.3"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -44,10 +44,10 @@ bintray {
         publish = true
 
         version {
-            name = '1.0.2'
+            name = '1.0.3'
             desc = 'RecyclerView的LayoutManager，轻松实现各种炫酷、特殊效果，再也不怕产品经理为难！ ' //需要修改
             released = new Date()
-            vcsTag = '1.0.2'
+            vcsTag = '1.0.3'
             attributes = ['gradle-plugin': 'com.use.less:com.use.less.gradle:gradle-useless-plugin']
         }
     }
